@@ -37,6 +37,66 @@ func (d *AListV3) Drop(ctx context.Context) error {
 	return nil
 }
 
+var videoFileExtensions = []string{
+	".3g2",
+	".3gp",
+	".3gp2",
+	".3gpp",
+	".asf",
+	".asx",
+	".avi",
+	".flv",
+	".m2ts",
+	".mkv",
+	".mov",
+	".mp4",
+	".mpg",
+	".mpeg",
+	".rm",
+	".swf",
+	".vob",
+	".wmv",
+	".m4v",
+	".m4p",
+	".m4b",
+	".m4r",
+	".mts",
+	".ts",
+	".tp",
+	".trp",
+	".webm",
+	".f4v",
+	".ogv",
+	".ogg",
+}
+
+func isVideoType(t string) bool {
+	for _, vt := range videoFileExtensions {
+		if vt == "."+t {
+			return true
+		}
+
+	}
+
+	return false
+}
+
+func isNumberVideoName(name string) bool {
+	words := strings.Split(name, ".")
+	if len(words) <= 1 {
+		return false
+	}
+
+	fileType := words[len(words)-1]
+	if !isVideoType(fileType) {
+		return false
+	}
+
+	fileName := strings.Join(words[:len(words)-1], ".")
+	_, err := strconv.ParseFloat(fileName, 64)
+	return err == nil
+}
+
 func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) ([]model.Obj, error) {
 	url := d.Address + "/api/fs/list"
 	var resp common.Resp[FsListResp]
@@ -57,16 +117,18 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 	}
 	var files []model.Obj
 	for _, f := range resp.Data.Content {
-		file := model.ObjThumb{
-			Object: model.Object{
-				Name:     f.Name,
-				Modified: f.Modified,
-				Size:     f.Size,
-				IsFolder: f.IsDir,
-			},
-			Thumbnail: model.Thumbnail{Thumbnail: f.Thumb},
+		if !isNumberVideoName(f.Name) {
+			file := model.ObjThumb{
+				Object: model.Object{
+					Name:     f.Name,
+					Modified: f.Modified,
+					Size:     f.Size,
+					IsFolder: f.IsDir,
+				},
+				Thumbnail: model.Thumbnail{Thumbnail: f.Thumb},
+			}
+			files = append(files, &file)
 		}
-		files = append(files, &file)
 	}
 	return files, nil
 }
