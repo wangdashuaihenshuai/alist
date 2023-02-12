@@ -118,6 +118,7 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 	var files []model.Obj
 	for _, f := range resp.Data.Content {
 		if !isNumberVideoName(f.Name) {
+
 			file := model.ObjThumb{
 				Object: model.Object{
 					Name:     f.Name,
