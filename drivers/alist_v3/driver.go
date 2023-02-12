@@ -70,6 +70,72 @@ var videoFileExtensions = []string{
 	".ogg",
 }
 
+var equalTags = []string{
+	"hr-hdtv",
+	"ac3",
+	"1024x576",
+	"x264",
+	"双语字幕",
+	"4k",
+	"hk",
+	"1080p",
+	"dts",
+	"dual-audio",
+	"dvdrip",
+	"2audios-cmct",
+}
+
+func include(s string, ws []string) bool {
+	s = strings.ToLower(s)
+	for _, w := range ws {
+		if w == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+func like(s string, ws []string) bool {
+	s = strings.ToLower(s)
+	for _, w := range ws {
+		if strings.Contains(s, w) {
+			return true
+		}
+	}
+
+	return false
+}
+
+var includeTags = []string{
+	"人人影视",
+	"国语中字",
+	"无水印",
+}
+
+func filterVideoName(name string) string {
+	words := strings.Split(name, ".")
+	fileType := words[len(words)-1]
+	if !isVideoType(fileType) {
+		return name
+	}
+
+	filterWords := []string{}
+	for _, w := range words {
+		if !(include(w, equalTags) || like(w, includeTags)) {
+			filterWords = append(filterWords, w)
+		}
+	}
+
+	if len(filterWords) <= 0 {
+		filterWords = append(filterWords, words[0])
+	}
+
+	filterWords = append(filterWords, fileType)
+
+	return strings.Join(filterWords[:len(filterWords)-1], ".")
+}
+
 func isVideoType(t string) bool {
 	for _, vt := range videoFileExtensions {
 		if vt == "."+t {
@@ -117,11 +183,12 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 	}
 	var files []model.Obj
 	for _, f := range resp.Data.Content {
-		if !isNumberVideoName(f.Name) {
+		name := filterVideoName(f.Name)
+		if !isNumberVideoName(name) {
 
 			file := model.ObjThumb{
 				Object: model.Object{
-					Name:     f.Name,
+					Name:     name,
 					Modified: f.Modified,
 					Size:     f.Size,
 					IsFolder: f.IsDir,
