@@ -22,6 +22,7 @@ var replaceRegs = []*regexp.Regexp{
 	regexp.MustCompile(`\d+届-`),
 	regexp.MustCompile(`\d+x\d+`),
 	regexp.MustCompile(`\d+x\d+`),
+	regexp.MustCompile(`no\.\d+`),
 }
 
 var replaceWords = []string{
@@ -190,17 +191,19 @@ func IsNumberVideoName(name string) bool {
 }
 
 func FilterVideoName(name string) string {
-	name = strings.ToLower(name)
-	name = urlReg.ReplaceAllString(name, "")
 	words := splitName(name)
 	if len(words) <= 1 {
-		return replaceName(name)
+		return name
 	}
 
 	fileType := words[len(words)-1]
 	if !isVideoType(fileType) {
 		return name
 	}
+
+	name = strings.ToLower(name)
+	name = urlReg.ReplaceAllString(name, "")
+	words = splitName(name)
 
 	if len(words) == 2 {
 		return replaceName(words[0])
@@ -218,6 +221,7 @@ func FilterVideoName(name string) string {
 	if err == nil && n < 1500 {
 		formatWords = formatWords[1:]
 	}
+	formatWords = append(formatWords, fileType)
 
 	return replaceName(strings.Join(formatWords, "."))
 }

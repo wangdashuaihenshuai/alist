@@ -66,8 +66,7 @@ func (d *AliyundriveShare) List(ctx context.Context, dir model.Obj, args model.L
 	}
 	filterFiles := []File{}
 	for _, f := range files {
-		name := op.FilterVideoName(f.Name)
-		if !op.IsNumberVideoName(name) {
+		if !op.IsNumberVideoName(op.FilterVideoName(f.Name)) {
 			filterFiles = append(filterFiles, f)
 		}
 	}
