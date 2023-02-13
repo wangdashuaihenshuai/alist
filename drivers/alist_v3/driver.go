@@ -10,6 +10,7 @@ import (
 	"github.com/alist-org/alist/v3/drivers/base"
 	"github.com/alist-org/alist/v3/internal/driver"
 	"github.com/alist-org/alist/v3/internal/model"
+	"github.com/alist-org/alist/v3/internal/op"
 	"github.com/alist-org/alist/v3/server/common"
 )
 
@@ -37,132 +38,6 @@ func (d *AListV3) Drop(ctx context.Context) error {
 	return nil
 }
 
-var videoFileExtensions = []string{
-	".3g2",
-	".3gp",
-	".3gp2",
-	".3gpp",
-	".asf",
-	".asx",
-	".avi",
-	".flv",
-	".m2ts",
-	".mkv",
-	".mov",
-	".mp4",
-	".mpg",
-	".mpeg",
-	".rm",
-	".swf",
-	".vob",
-	".wmv",
-	".m4v",
-	".m4p",
-	".m4b",
-	".m4r",
-	".mts",
-	".ts",
-	".tp",
-	".trp",
-	".webm",
-	".f4v",
-	".ogv",
-	".ogg",
-}
-
-var equalTags = []string{
-	"hr-hdtv",
-	"ac3",
-	"1024x576",
-	"x264",
-	"双语字幕",
-	"4k",
-	"hk",
-	"1080p",
-	"dts",
-	"dual-audio",
-	"dvdrip",
-	"2audios-cmct",
-}
-
-func include(s string, ws []string) bool {
-	s = strings.ToLower(s)
-	for _, w := range ws {
-		if w == s {
-			return true
-		}
-	}
-
-	return false
-}
-
-func like(s string, ws []string) bool {
-	s = strings.ToLower(s)
-	for _, w := range ws {
-		if strings.Contains(s, w) {
-			return true
-		}
-	}
-
-	return false
-}
-
-var includeTags = []string{
-	"人人影视",
-	"国语中字",
-	"无水印",
-}
-
-func filterVideoName(name string) string {
-	words := strings.Split(name, ".")
-	fileType := words[len(words)-1]
-	if !isVideoType(fileType) {
-		return name
-	}
-
-	filterWords := []string{}
-	for _, w := range words {
-		if !(include(w, equalTags) || like(w, includeTags)) {
-			filterWords = append(filterWords, w)
-		}
-	}
-
-	if len(filterWords) <= 0 {
-		filterWords = append(filterWords, words[0])
-	}
-
-	filterWords = append(filterWords, fileType)
-
-	return strings.Join(filterWords[:len(filterWords)-1], ".")
-}
-
-func isVideoType(t string) bool {
-	for _, vt := range videoFileExtensions {
-		if vt == "."+t {
-			return true
-		}
-
-	}
-
-	return false
-}
-
-func isNumberVideoName(name string) bool {
-	words := strings.Split(name, ".")
-	if len(words) <= 1 {
-		return false
-	}
-
-	fileType := words[len(words)-1]
-	if !isVideoType(fileType) {
-		return false
-	}
-
-	fileName := strings.Join(words[:len(words)-1], ".")
-	_, err := strconv.ParseFloat(fileName, 64)
-	return err == nil
-}
-
 func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) ([]model.Obj, error) {
 	url := d.Address + "/api/fs/list"
 	var resp common.Resp[FsListResp]
@@ -183,9 +58,8 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 	}
 	var files []model.Obj
 	for _, f := range resp.Data.Content {
-		name := filterVideoName(f.Name)
-		if !isNumberVideoName(name) {
-
+		name := op.FilterVideoName(f.Name)
+		if !op.IsNumberVideoName(name) {
 			file := model.ObjThumb{
 				Object: model.Object{
 					Name:     name,

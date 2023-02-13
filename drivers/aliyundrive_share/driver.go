@@ -9,6 +9,7 @@ import (
 	"github.com/alist-org/alist/v3/drivers/base"
 	"github.com/alist-org/alist/v3/internal/driver"
 	"github.com/alist-org/alist/v3/internal/model"
+	"github.com/alist-org/alist/v3/internal/op"
 	"github.com/alist-org/alist/v3/pkg/cron"
 	"github.com/alist-org/alist/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -63,7 +64,14 @@ func (d *AliyundriveShare) List(ctx context.Context, dir model.Obj, args model.L
 	if err != nil {
 		return nil, err
 	}
-	return utils.SliceConvert(files, func(src File) (model.Obj, error) {
+	filterFiles := []File{}
+	for _, f := range files {
+		name := op.FilterVideoName(f.Name)
+		if !op.IsNumberVideoName(name) {
+			filterFiles = append(filterFiles, f)
+		}
+	}
+	return utils.SliceConvert(filterFiles, func(src File) (model.Obj, error) {
 		return fileToObj(src), nil
 	})
 }
