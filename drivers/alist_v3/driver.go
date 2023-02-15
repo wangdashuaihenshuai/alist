@@ -58,10 +58,12 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 	}
 	var files []model.Obj
 	for _, f := range resp.Data.Content {
-		if !op.IsNumberVideoName(op.FilterVideoName(f.Name)) {
+		name := op.FilterVideoName(f.Name)
+		if !op.IsNumberVideoName(name) {
 			file := model.ObjThumb{
 				Object: model.Object{
-					Name:     f.Name,
+					Name:     name,
+					Path:     dir.GetPath() + "/" + f.Name,
 					Modified: f.Modified,
 					Size:     f.Size,
 					IsFolder: f.IsDir,

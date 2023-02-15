@@ -43,8 +43,11 @@ var metas = []string{
 	"10bit",
 	"中字",
 	"国语",
+	"h265",
+	"2160p",
 	"mnhd-frds",
 	"3audio",
+	"web-dl",
 	"1080p",
 	"x265",
 	"x264",
@@ -73,6 +76,7 @@ var metas = []string{
 	"加长版",
 	"无水印",
 	"bluray",
+	"粤语",
 	"x264",
 	"国英音轨",
 	"flac-cmct",
@@ -100,7 +104,7 @@ func includeMeta(word string) (string, bool) {
 }
 
 func splitChars(r rune) bool {
-	return r == '.' || r == '(' || r == ')'
+	return r == '.' || r == '(' || r == ')' || r == '_'
 }
 
 func splitName(name string) []string {
@@ -206,7 +210,7 @@ func FilterVideoName(name string) string {
 	words = splitName(name)
 
 	if len(words) == 2 {
-		return replaceName(words[0])
+		return replaceName(words[0]) + "." + fileType
 	}
 
 	formatWords := []string{}
