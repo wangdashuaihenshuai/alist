@@ -58,20 +58,17 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 	}
 	var files []model.Obj
 	for _, f := range resp.Data.Content {
-		name := op.FilterVideoName(f.Name)
-		if !op.IsNumberVideoName(name) {
-			file := model.ObjThumb{
-				Object: model.Object{
-					Name:     name,
-					Path:     dir.GetPath() + "/" + f.Name,
-					Modified: f.Modified,
-					Size:     f.Size,
-					IsFolder: f.IsDir,
-				},
-				Thumbnail: model.Thumbnail{Thumbnail: f.Thumb},
-			}
-			files = append(files, &file)
+		file := model.ObjThumb{
+			Object: model.Object{
+				Name:     op.RenameVideoName(f.Name, dir.GetPath()),
+				Path:     dir.GetPath() + "/" + f.Name,
+				Modified: f.Modified,
+				Size:     f.Size,
+				IsFolder: f.IsDir,
+			},
+			Thumbnail: model.Thumbnail{Thumbnail: f.Thumb},
 		}
+		files = append(files, &file)
 	}
 	return files, nil
 }

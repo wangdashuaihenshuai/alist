@@ -22,7 +22,19 @@ var replaceRegs = []*regexp.Regexp{
 	regexp.MustCompile(`\d+届-`),
 	regexp.MustCompile(`\d+x\d+`),
 	regexp.MustCompile(`\d+x\d+`),
+	regexp.MustCompile(`共\d+集`),
 	regexp.MustCompile(`no\.\d+`),
+}
+
+var numberRegs = []*regexp.Regexp{
+	regexp.MustCompile(`^\d+$`),
+	regexp.MustCompile(`^s\d+e\d+$`),
+	regexp.MustCompile(`^s\d+ep\d+$`),
+	regexp.MustCompile(`^s第\d+集$`),
+}
+
+var sessionRegs = []*regexp.Regexp{
+	regexp.MustCompile(`s\d+`),
 }
 
 var replaceWords = []string{
@@ -40,10 +52,12 @@ var replaceWords = []string{
 var metas = []string{
 	"4k",
 	"aac",
+	"60fps",
 	"10bit",
 	"中字",
 	"国语",
 	"h265",
+	"hevc",
 	"2160p",
 	"mnhd-frds",
 	"3audio",
@@ -63,7 +77,11 @@ var metas = []string{
 	"双语",
 	"字幕",
 	"hr-hdtv",
+	"导演剪辑版",
 	"dts",
+	"remastered",
+	"内封",
+	"中字",
 	"dual-audio",
 	"hr-hdtv",
 	"1024x576",
@@ -168,6 +186,7 @@ var videoFileExtensions = []string{
 }
 
 func isVideoType(t string) bool {
+	t = strings.ToLower(t)
 	for _, vt := range videoFileExtensions {
 		if vt == "."+t {
 			return true
@@ -178,20 +197,68 @@ func isVideoType(t string) bool {
 	return false
 }
 
-func IsNumberVideoName(name string) bool {
+func isVideoName(name string) bool {
 	words := strings.Split(name, ".")
 	if len(words) <= 1 {
 		return false
 	}
 
 	fileType := words[len(words)-1]
-	if !isVideoType(fileType) {
+	return isVideoType(fileType)
+}
+
+type VideoInfo struct {
+	Name string
+	Type string
+}
+
+func getVideoTypeInfo(name string) *VideoInfo {
+	words := strings.Split(name, ".")
+	if len(words) <= 1 {
+		return nil
+	}
+
+	fileType := words[len(words)-1]
+	if isVideoType(fileType) {
+		return &VideoInfo{
+			Name: strings.Join(words[:len(words)-1], "."),
+			Type: fileType,
+		}
+	}
+
+	return nil
+}
+
+func IsNumberVideoName(name string) bool {
+	if !isVideoName(name) {
+		return false
+	}
+
+	words := strings.Split(name, ".")
+	if len(words) <= 1 {
 		return false
 	}
 
 	fileName := strings.Join(words[:len(words)-1], ".")
-	_, err := strconv.ParseFloat(fileName, 64)
-	return err == nil
+	for _, r := range numberRegs {
+		if r.MatchString(fileName) {
+			return true
+		}
+
+	}
+	return false
+}
+
+func getLastDirName(path string) string {
+	if path == "" {
+		return ""
+	}
+	words := strings.Split(path, "/")
+	if len(words) <= 1 {
+		return path
+	}
+
+	return words[len(words)-1]
 }
 
 func FilterVideoName(name string) string {
@@ -227,5 +294,27 @@ func FilterVideoName(name string) string {
 	}
 	formatWords = append(formatWords, fileType)
 
-	return replaceName(strings.Join(formatWords, "."))
+	filterWords := []string{}
+
+	for _, w := range formatWords {
+		if strings.Trim(w, " ") != "" {
+			filterWords = append(filterWords, w)
+		}
+
+	}
+
+	return replaceName(strings.Join(filterWords, "."))
+}
+
+func RenameVideoName(name string, ParentPath string) string {
+	if !isVideoName(name) {
+		return name
+	}
+
+	if !IsNumberVideoName(name) {
+		return FilterVideoName(name)
+	}
+
+	dir := getLastDirName(ParentPath)
+	return FilterVideoName(strings.Join([]string{dir, name}, "."))
 }
