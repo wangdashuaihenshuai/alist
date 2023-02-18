@@ -27,8 +27,10 @@ var replaceRegs = []*regexp.Regexp{
 	regexp.MustCompile(`no\.\d+`),
 }
 
+var justNumberReg = regexp.MustCompile(`^\d+$`)
+
 var numberRegs = []*regexp.Regexp{
-	regexp.MustCompile(`^\d+$`),
+	justNumberReg,
 	regexp.MustCompile(`^s\d+e\d+$`),
 	regexp.MustCompile(`^s\d+ep\d+$`),
 	regexp.MustCompile(`^s第\d+集$`),
@@ -252,6 +254,20 @@ func IsNumberVideoName(name string) bool {
 	return false
 }
 
+func IsJustNumberVideoName(name string) bool {
+	if !isVideoName(name) {
+		return false
+	}
+
+	words := strings.Split(name, ".")
+	if len(words) <= 1 {
+		return false
+	}
+
+	fileName := strings.Join(words[:len(words)-1], ".")
+	return justNumberReg.MatchString(fileName)
+}
+
 func getLastDirName(path string) string {
 	if path == "" {
 		return ""
@@ -303,7 +319,6 @@ func FilterVideoName(name string) string {
 		if strings.Trim(w, " ") != "" {
 			filterWords = append(filterWords, w)
 		}
-
 	}
 
 	return replaceName(strings.Join(filterWords, "."))
@@ -316,6 +331,10 @@ func RenameVideoName(name string, ParentPath string) string {
 
 	if !IsNumberVideoName(name) {
 		return FilterVideoName(name)
+	}
+
+	if IsJustNumberVideoName(name) {
+		name = "e" + name
 	}
 
 	dir := getLastDirName(ParentPath)
