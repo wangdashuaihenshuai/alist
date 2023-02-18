@@ -1,6 +1,7 @@
 package op
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,16 +25,18 @@ var replaceRegs = []*regexp.Regexp{
 	regexp.MustCompile(`\d+x\d+`),
 	regexp.MustCompile(`共\d+集`),
 	regexp.MustCompile(`\d+集全`),
-	regexp.MustCompile(`no\.\d+`),
+	regexp.MustCompile(`^no\.\d+`),
 }
 
-var justNumberReg = regexp.MustCompile(`^\d+$`)
+var justNumberRegs = []*regexp.Regexp{
+	regexp.MustCompile(`^(\d+)$`),
+	regexp.MustCompile(`^第(\d+)集$`),
+	regexp.MustCompile(`^(\d+)集$`),
+}
 
 var numberRegs = []*regexp.Regexp{
-	justNumberReg,
 	regexp.MustCompile(`^s\d+e\d+$`),
 	regexp.MustCompile(`^s\d+ep\d+$`),
-	regexp.MustCompile(`^s第\d+集$`),
 }
 
 var sessionRegs = []*regexp.Regexp{
@@ -250,23 +253,35 @@ func IsNumberVideoName(name string) bool {
 		if r.MatchString(fileName) {
 			return true
 		}
+	}
 
+	for _, r := range justNumberRegs {
+		if r.MatchString(fileName) {
+			return true
+		}
 	}
 	return false
 }
 
-func IsJustNumberVideoName(name string) bool {
+func GetJustNumberVideoName(name string) (bool, string) {
 	if !isVideoName(name) {
-		return false
+		return false, ""
 	}
 
 	words := strings.Split(name, ".")
 	if len(words) <= 1 {
-		return false
+		return false, ""
 	}
 
 	fileName := strings.Join(words[:len(words)-1], ".")
-	return justNumberReg.MatchString(fileName)
+	for _, r := range justNumberRegs {
+		subStr := r.FindStringSubmatch(fileName)
+		if len(subStr) >= 2 {
+			return true, subStr[1] + "." + words[len(words)-1]
+		}
+	}
+
+	return false, ""
 }
 
 func getLastDirName(path string) string {
@@ -327,15 +342,18 @@ func FilterVideoName(name string) string {
 
 func RenameVideoName(name string, ParentPath string) string {
 	if !isVideoName(name) {
+		fmt.Println(name)
 		return name
 	}
 
 	if !IsNumberVideoName(name) {
+		fmt.Println(name, "2")
 		return FilterVideoName(name)
 	}
 
-	if IsJustNumberVideoName(name) {
-		name = "e" + name
+	ok, getName := GetJustNumberVideoName(name)
+	if ok {
+		name = "e" + getName
 	}
 
 	dir := getLastDirName(ParentPath)
