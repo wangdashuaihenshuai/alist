@@ -172,6 +172,7 @@ var videoFileExtensions = []string{
 	".mp4",
 	".mpg",
 	".mpeg",
+	".rmvb",
 	".rm",
 	".swf",
 	".vob",
