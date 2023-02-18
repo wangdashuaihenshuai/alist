@@ -71,7 +71,10 @@ func (d *AliyundriveShare) List(ctx context.Context, dir model.Obj, args model.L
 			f.Name = op.RenameVideoName(f.Name, args.ReqPath)
 		}
 
-		filterFiles = append(filterFiles, f)
+		if !op.IsNumberVideoName(f.Name) {
+			filterFiles = append(filterFiles, f)
+		}
+
 	}
 	return utils.SliceConvert(filterFiles, func(src File) (model.Obj, error) {
 		return fileToObj(src), nil

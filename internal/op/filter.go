@@ -23,6 +23,7 @@ var replaceRegs = []*regexp.Regexp{
 	regexp.MustCompile(`\d+x\d+`),
 	regexp.MustCompile(`\d+x\d+`),
 	regexp.MustCompile(`共\d+集`),
+	regexp.MustCompile(`\d+集全`),
 	regexp.MustCompile(`no\.\d+`),
 }
 
@@ -99,6 +100,8 @@ var metas = []string{
 	"国英音轨",
 	"flac-cmct",
 	"flac",
+	"chs",
+	"bde4",
 	"dvdrip",
 	"unrated",
 	"bluray",
@@ -122,7 +125,7 @@ func includeMeta(word string) (string, bool) {
 }
 
 func splitChars(r rune) bool {
-	return r == '.' || r == '(' || r == ')' || r == '_'
+	return r == '.' || r == '(' || r == ')' || r == '（' || r == '）' || r == '_' || r == ' '
 }
 
 func splitName(name string) []string {

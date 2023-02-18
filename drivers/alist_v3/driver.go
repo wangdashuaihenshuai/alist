@@ -68,7 +68,10 @@ func (d *AListV3) List(ctx context.Context, dir model.Obj, args model.ListArgs) 
 			},
 			Thumbnail: model.Thumbnail{Thumbnail: f.Thumb},
 		}
-		files = append(files, &file)
+
+		if !op.IsNumberVideoName(file.Name) {
+			files = append(files, &file)
+		}
 	}
 	return files, nil
 }
