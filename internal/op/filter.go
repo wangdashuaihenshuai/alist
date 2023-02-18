@@ -127,7 +127,7 @@ func includeMeta(word string) (string, bool) {
 }
 
 func splitChars(r rune) bool {
-	return r == '.' || r == '(' || r == ')' || r == '（' || r == '）' || r == '_' || r == ' '
+	return r == '《' || r == '》' || r == '.' || r == '(' || r == ')' || r == '（' || r == '）' || r == '_' || r == ' '
 }
 
 func splitName(name string) []string {
