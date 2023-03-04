@@ -82,8 +82,14 @@ var metas = []string{
 	"bdrip",
 	"双语",
 	"字幕",
+	"完结",
+	"网剧",
 	"hr-hdtv",
 	"导演剪辑版",
+	"dvd版",
+	"chinese",
+	"9.1",
+	"paladin"
 	"dts",
 	"remastered",
 	"内封",
@@ -353,7 +359,7 @@ func RenameVideoName(name string, ParentPath string) string {
 
 	ok, getName := GetJustNumberVideoName(name)
 	if ok {
-		name = "e" + getName
+		name = "ep" + getName
 	}
 
 	dir := getLastDirName(ParentPath)
