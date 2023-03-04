@@ -18,6 +18,9 @@ type Addition struct {
 var config = driver.Config{
 	Name:        "Aliyundrive",
 	DefaultRoot: "root",
+	Alert: `warning|There may be an infinite loop bug in this driver.
+Deprecated, no longer maintained and will be removed in a future version.
+We recommend using the official driver AliyundriveOpen.`,
 }
 
 func init() {
