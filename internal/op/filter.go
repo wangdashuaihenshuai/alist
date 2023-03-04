@@ -89,7 +89,7 @@ var metas = []string{
 	"dvd版",
 	"chinese",
 	"9.1",
-	"paladin"
+	"paladin",
 	"dts",
 	"remastered",
 	"内封",
